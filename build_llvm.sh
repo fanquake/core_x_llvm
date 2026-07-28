@@ -70,8 +70,8 @@ cmake -S "$LLVM_SRC/llvm" -B "$BUILD" -G Ninja \
   -DLLVM_ENABLE_LTO=Thin \
   -DLLVM_THINLTO_CACHE_PATH="$(pwd)/thinlto_cache" \
   -DCMAKE_LINKER_TYPE=LLD \
-  -DCMAKE_EXE_LINKER_FLAGS="-Wl,--thinlto-cache-policy=cache_size_bytes=20g" \
-  -DCMAKE_SHARED_LINKER_FLAGS="-Wl,--thinlto-cache-policy=cache_size_bytes=20g" \
+  -DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=lld -Wl,--thinlto-cache-policy=cache_size_bytes=20g" \
+  -DCMAKE_SHARED_LINKER_FLAGS="-fuse-ld=lld -Wl,--thinlto-cache-policy=cache_size_bytes=20g" \
   -DLLVM_ENABLE_PROJECTS='bolt;clang;lld' \
   -DLLVM_TARGETS_TO_BUILD="$LLVM_TARGET"
 
