@@ -12,13 +12,20 @@ export OBJDUMP="$TOOLCHAIN/bin/llvm-objdump"
 export RANLIB="$TOOLCHAIN/bin/llvm-ranlib"
 export STRIP="$TOOLCHAIN/bin/llvm-strip"
 
-# build_CC=llvm_toolchain/bin/clang
-# build_CXX=llvm_toolchain/bin/clang++
+ARCH="$(uname -m)"
+case "$ARCH" in
+  x86_64)
+    NATIVE_FLAG=-march=native
+    ;;
+  aarch64)
+    NATIVE_FLAG=-mcpu=native
+    ;;
+esac
 
 CFLAGS=(
   -O2
   -flto=full
-  -mcpu=native
+  "$NATIVE_FLAG"
 )
 
 CXXFLAGS=(

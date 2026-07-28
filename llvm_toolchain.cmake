@@ -1,6 +1,12 @@
 set(LLVM_TOOLCHAIN_PREFIX "${CMAKE_CURRENT_LIST_DIR}/llvm_toolchain" CACHE PATH "")
 
-set(DEPENDS_TOOLCHAIN_FILE "${CMAKE_CURRENT_LIST_DIR}/bitcoin/depends/aarch64-unknown-linux-gnu/toolchain.cmake" CACHE FILEPATH "")
+execute_process(
+  COMMAND "${CMAKE_CURRENT_LIST_DIR}/bitcoin/depends/config.guess"
+  OUTPUT_VARIABLE DEPENDS_HOST_TRIPLE
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+set(DEPENDS_TOOLCHAIN_FILE "${CMAKE_CURRENT_LIST_DIR}/bitcoin/depends/${DEPENDS_HOST_TRIPLE}/toolchain.cmake" CACHE FILEPATH "")
 
 include("${DEPENDS_TOOLCHAIN_FILE}")
 

@@ -6,11 +6,28 @@ BUILD="llvm_build"
 RUNTIMES_BUILD="runtimes_build"
 PREFIX="$(pwd)/llvm_toolchain"
 
+CC="${CC:-clang}"
+CXX="${CXX:-clang++}"
+
+ARCH="$(uname -m)"
+case "$ARCH" in
+  x86_64)
+    TRIPLE=x86_64-unknown-linux-gnu
+    LLVM_TARGET=X86
+    NATIVE_FLAG=-march=native
+    ;;
+  aarch64)
+    TRIPLE=aarch64-unknown-linux-gnu
+    LLVM_TARGET=AArch64
+    NATIVE_FLAG=-mcpu=native
+    ;;
+esac
+
 rm -rf "$BUILD" "$RUNTIMES_BUILD" "$PREFIX"
 
 # Drop qsort/qsort_r from llvm-libc: in overlay mode with -static-pie
 # we collide with glibc.
-cat > "$LLVM_SRC/libc/config/linux/aarch64/exclude.txt" <<'EOF'
+cat > "$LLVM_SRC/libc/config/linux/$ARCH/exclude.txt" <<'EOF'
 list(APPEND TARGET_LLVMLIBC_REMOVED_ENTRYPOINTS
   libc.src.stdlib.qsort
   libc.src.stdlib.qsort_r
@@ -24,10 +41,12 @@ LTO_FLAGS=(
 )
 
 RUNTIMES_FLAGS=(
-  -mcpu=native
-  -mbranch-protection=standard
+  "$NATIVE_FLAG"
   -fstack-protector-all
 )
+if [ "$ARCH" = aarch64 ]; then
+  RUNTIMES_FLAGS+=(-mbranch-protection=standard)
+fi
 RUNTIMES_CXX_FLAGS=(
   -fwhole-program-vtables
   -fstrict-vtable-pointers
@@ -35,12 +54,12 @@ RUNTIMES_CXX_FLAGS=(
 )
 
 cmake -S "$LLVM_SRC/llvm" -B "$BUILD" -G Ninja \
-  -DCMAKE_C_COMPILER=clang \
-  -DCMAKE_CXX_COMPILER=clang++ \
+  -DCMAKE_C_COMPILER="$CC" \
+  -DCMAKE_CXX_COMPILER="$CXX" \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_INSTALL_PREFIX="$PREFIX" \
-  -DCMAKE_C_FLAGS=-mcpu=native \
-  -DCMAKE_CXX_FLAGS=-mcpu=native \
+  -DCMAKE_C_FLAGS="$NATIVE_FLAG" \
+  -DCMAKE_CXX_FLAGS="$NATIVE_FLAG" \
   -DCMAKE_AR="$(command -v llvm-ar)" \
   -DCMAKE_RANLIB="$(command -v llvm-ranlib)" \
   -DLLVM_CCACHE_BUILD=ON \
@@ -51,11 +70,9 @@ cmake -S "$LLVM_SRC/llvm" -B "$BUILD" -G Ninja \
   -DCMAKE_EXE_LINKER_FLAGS="-Wl,--thinlto-cache-policy=cache_size_bytes=20g" \
   -DCMAKE_SHARED_LINKER_FLAGS="-Wl,--thinlto-cache-policy=cache_size_bytes=20g" \
   -DLLVM_ENABLE_PROJECTS='bolt;clang;lld' \
-  -DLLVM_TARGETS_TO_BUILD=AArch64
+  -DLLVM_TARGETS_TO_BUILD="$LLVM_TARGET"
 
 cmake --build "$BUILD" --target install
-
-TRIPLE=aarch64-unknown-linux-gnu
 
 cmake -S "$LLVM_SRC/runtimes" -B "$RUNTIMES_BUILD" -G Ninja \
   -DCMAKE_C_COMPILER="$PREFIX/bin/clang" \
