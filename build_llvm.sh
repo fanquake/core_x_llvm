@@ -8,6 +8,8 @@ PREFIX="$(pwd)/llvm_toolchain"
 
 CC="${CC:-clang}"
 CXX="${CXX:-clang++}"
+AR="${AR:-$(command -v llvm-ar)}"
+RANLIB="${RANLIB:-$(command -v llvm-ranlib)}"
 
 ARCH="$(uname -m)"
 case "$ARCH" in
@@ -60,8 +62,9 @@ cmake -S "$LLVM_SRC/llvm" -B "$BUILD" -G Ninja \
   -DCMAKE_INSTALL_PREFIX="$PREFIX" \
   -DCMAKE_C_FLAGS="$NATIVE_FLAG" \
   -DCMAKE_CXX_FLAGS="$NATIVE_FLAG" \
-  -DCMAKE_AR="$(command -v llvm-ar)" \
-  -DCMAKE_RANLIB="$(command -v llvm-ranlib)" \
+  -DCMAKE_AR="$AR" \
+  -DCMAKE_RANLIB="$RANLIB" \
+  -DCMAKE_DISABLE_PRECOMPILE_HEADERS=ON \
   -DLLVM_CCACHE_BUILD=ON \
   -DLLVM_ENABLE_LLD=ON \
   -DLLVM_ENABLE_LTO=Thin \
