@@ -56,24 +56,25 @@ RUNTIMES_CXX_FLAGS=(
 )
 
 cmake -S "$LLVM_SRC/llvm" -B "$BUILD" -G Ninja \
-  -DCMAKE_C_COMPILER="$CC" \
-  -DCMAKE_CXX_COMPILER="$CXX" \
-  -DCMAKE_BUILD_TYPE=Release \
-  -DCMAKE_INSTALL_PREFIX="$PREFIX" \
-  -DCMAKE_C_FLAGS="$NATIVE_FLAG" \
-  -DCMAKE_CXX_FLAGS="$NATIVE_FLAG" \
   -DCMAKE_AR="$AR" \
-  -DCMAKE_RANLIB="$RANLIB" \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_C_COMPILER="$CC" \
+  -DCMAKE_C_FLAGS="$NATIVE_FLAG" \
+  -DCMAKE_CXX_COMPILER="$CXX" \
+  -DCMAKE_CXX_FLAGS="$NATIVE_FLAG" \
   -DCMAKE_DISABLE_PRECOMPILE_HEADERS=ON \
+  -DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=lld -Wl,--thinlto-cache-policy=cache_size_bytes=20g" \
+  -DCMAKE_INSTALL_PREFIX="$PREFIX" \
+  -DCMAKE_LINKER_TYPE=LLD \
+  -DCMAKE_RANLIB="$RANLIB" \
+  -DCMAKE_SHARED_LINKER_FLAGS="-fuse-ld=lld -Wl,--thinlto-cache-policy=cache_size_bytes=20g" \
   -DLLVM_CCACHE_BUILD=ON \
   -DLLVM_ENABLE_LLD=ON \
   -DLLVM_ENABLE_LTO=Thin \
-  -DLLVM_THINLTO_CACHE_PATH="$(pwd)/thinlto_cache" \
-  -DCMAKE_LINKER_TYPE=LLD \
-  -DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=lld -Wl,--thinlto-cache-policy=cache_size_bytes=20g" \
-  -DCMAKE_SHARED_LINKER_FLAGS="-fuse-ld=lld -Wl,--thinlto-cache-policy=cache_size_bytes=20g" \
   -DLLVM_ENABLE_PROJECTS='bolt;clang;lld' \
-  -DLLVM_TARGETS_TO_BUILD="$LLVM_TARGET"
+  -DLLVM_INCLUDE_BENCHMARKS=OFF \
+  -DLLVM_TARGETS_TO_BUILD="$LLVM_TARGET" \
+  -DLLVM_THINLTO_CACHE_PATH="$(pwd)/thinlto_cache"
 
 cmake --build "$BUILD" --target install
 
