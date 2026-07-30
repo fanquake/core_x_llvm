@@ -46,7 +46,9 @@ set(_opt_record_passes
 list(JOIN _opt_record_passes "|" _opt_record_passes)
 
 # -Wl,--opt-remarks-with-hotness, needs PGO
+# keep -fuse-ld=lld until CMAKE_LINKER_TYPE is in every CMake we use
 string(JOIN " " CMAKE_EXE_LINKER_FLAGS
+  -fuse-ld=lld
   -flto=full
   -fwhole-program-vtables
   -fstrict-vtable-pointers
